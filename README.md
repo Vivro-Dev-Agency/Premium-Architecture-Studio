@@ -4,7 +4,7 @@
 
 Premium architecture and interior design studio website for **Atelier Meridian** — an award-winning practice based in Agadir and Taghazout, Morocco. Built with Next.js, Tailwind CSS, Shadcn UI, and GSAP.
 
-**Live demo:** https://premium-architecture-studio.vercel.app
+**Live demo:** https://premium-architecture-studio.vivro.dev/
 
 **Developed by [vivro.dev](https://vivro.dev)**
 
