@@ -7,49 +7,99 @@ import gsap from "gsap";
 
 import { ButtonLink } from "@/components/ui/button-link";
 import { studioInfo } from "@/lib/data/site";
-import {
-  createGsapMatchMedia,
-  prefersReducedMotion,
-} from "@/lib/gsap/config";
+import { createGsapMatchMedia, prefersReducedMotion } from "@/lib/gsap/config";
 import { DEFAULT_QUALITY, imageSizes } from "@/lib/image";
+
+const HERO_SELECTORS = [
+  "[data-hero-label]",
+  "[data-hero-line]",
+  "[data-hero-desc]",
+  "[data-hero-cta]",
+  "[data-hero-image]",
+  "[data-hero-accent]",
+] as const;
+
+function clearHeroAnimationProps(scope: HTMLElement) {
+  gsap.set(scope.querySelectorAll(HERO_SELECTORS.join(",")), {
+    clearProps: "opacity,transform,visibility",
+  });
+}
 
 export function Hero() {
   const containerRef = useRef<HTMLElement>(null);
 
   useGSAP(
     () => {
-      if (prefersReducedMotion()) return;
+      const scope = containerRef.current;
+      if (!scope || prefersReducedMotion()) return;
 
       const mm = createGsapMatchMedia();
+
+      const fadeUp = (
+        targets: gsap.TweenTarget,
+        {
+          y = 20,
+          duration = 0.8,
+          ease = "power3.out",
+          stagger,
+          delay,
+        }: {
+          y?: number;
+          duration?: number;
+          ease?: string;
+          stagger?: number;
+          delay?: number;
+        }
+      ) =>
+        gsap.fromTo(targets, { y, autoAlpha: 0 }, {
+          y: 0,
+          autoAlpha: 1,
+          duration,
+          ease,
+          stagger,
+          delay,
+          clearProps: "opacity,transform,visibility",
+        });
 
       mm.add("(min-width: 768px)", () => {
         const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-        tl.from("[data-hero-label]", {
-          y: 20,
-          opacity: 0,
-          duration: 0.8,
-          delay: 0.3,
-        })
-          .from(
-            "[data-hero-line]",
-            { y: 80, opacity: 0, duration: 1.1, stagger: 0.12 },
+        tl.add(fadeUp("[data-hero-label]", { y: 20, duration: 0.8, delay: 0.3 }))
+          .add(
+            fadeUp("[data-hero-line]", { y: 80, duration: 1.1, stagger: 0.12 }),
             "-=0.4"
           )
-          .from("[data-hero-desc]", { y: 30, opacity: 0, duration: 0.9 }, "-=0.5")
-          .from(
-            "[data-hero-cta]",
-            { y: 20, opacity: 0, duration: 0.7, stagger: 0.1 },
+          .add(fadeUp("[data-hero-desc]", { y: 30, duration: 0.9 }), "-=0.5")
+          .add(
+            fadeUp("[data-hero-cta]", { y: 20, duration: 0.7, stagger: 0.1 }),
             "-=0.4"
           )
-          .from(
-            "[data-hero-image]",
-            { scale: 1.06, opacity: 0, duration: 1.4, ease: "power2.out" },
+          .add(
+            gsap.fromTo(
+              "[data-hero-image]",
+              { scale: 1.06, autoAlpha: 0 },
+              {
+                scale: 1,
+                autoAlpha: 1,
+                duration: 1.4,
+                ease: "power2.out",
+                clearProps: "opacity,transform,visibility",
+              }
+            ),
             "-=1.2"
           )
-          .from(
-            "[data-hero-accent]",
-            { scaleX: 0, duration: 1.2, ease: "power3.inOut" },
+          .add(
+            gsap.fromTo(
+              "[data-hero-accent]",
+              { scaleX: 0 },
+              {
+                scaleX: 1,
+                duration: 1.2,
+                ease: "power3.inOut",
+                transformOrigin: "left center",
+                clearProps: "transform",
+              }
+            ),
             "-=1"
           );
       });
@@ -57,22 +107,48 @@ export function Hero() {
       mm.add("(max-width: 767px)", () => {
         const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
-        tl.from("[data-hero-label]", { y: 12, opacity: 0, duration: 0.5 })
-          .from(
-            "[data-hero-line]",
-            { y: 24, opacity: 0, duration: 0.6, stagger: 0.08 },
+        tl.add(fadeUp("[data-hero-label]", { y: 12, duration: 0.5, ease: "power2.out" }))
+          .add(
+            fadeUp("[data-hero-line]", {
+              y: 24,
+              duration: 0.6,
+              stagger: 0.08,
+              ease: "power2.out",
+            }),
             "-=0.2"
           )
-          .from("[data-hero-desc]", { y: 16, opacity: 0, duration: 0.5 }, "-=0.25")
-          .from(
-            "[data-hero-cta]",
-            { y: 12, opacity: 0, duration: 0.4, stagger: 0.06 },
+          .add(
+            fadeUp("[data-hero-desc]", { y: 16, duration: 0.5, ease: "power2.out" }),
+            "-=0.25"
+          )
+          .add(
+            fadeUp("[data-hero-cta]", {
+              y: 12,
+              duration: 0.4,
+              stagger: 0.06,
+              ease: "power2.out",
+            }),
             "-=0.2"
           )
-          .from("[data-hero-image]", { opacity: 0, duration: 0.7 }, "-=0.3");
+          .add(
+            gsap.fromTo(
+              "[data-hero-image]",
+              { autoAlpha: 0 },
+              {
+                autoAlpha: 1,
+                duration: 0.7,
+                ease: "power2.out",
+                clearProps: "opacity,visibility",
+              }
+            ),
+            "-=0.3"
+          );
       });
 
-      return () => mm.revert();
+      return () => {
+        mm.revert();
+        clearHeroAnimationProps(scope);
+      };
     },
     { scope: containerRef }
   );
@@ -80,7 +156,7 @@ export function Hero() {
   return (
     <section
       ref={containerRef}
-      className="relative flex min-h-svh items-end overflow-hidden pt-20"
+      className="relative flex min-h-svh items-end overflow-hidden"
     >
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-linear-to-r from-background via-background/95 to-background/40" />
@@ -107,7 +183,10 @@ export function Hero() {
             </h1>
           </div>
 
-          <div data-hero-accent className="h-px w-16 origin-left bg-bronze" />
+          <div
+            data-hero-accent
+            className="h-px w-16 origin-left bg-bronze"
+          />
 
           <p
             data-hero-desc
@@ -118,16 +197,17 @@ export function Hero() {
             timeless refinement.
           </p>
 
-          <div className="flex flex-wrap items-center gap-4">
+          <div
+            data-hero-cta
+            className="flex flex-wrap items-center gap-4"
+          >
             <ButtonLink
-              data-hero-cta
               href="/work"
               className="h-11 rounded-none px-8 text-[0.65rem] tracking-[0.2em] uppercase"
             >
               View Selected Work
             </ButtonLink>
             <ButtonLink
-              data-hero-cta
               href="/studio"
               variant="ghost"
               className="h-11 rounded-none px-6 text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase hover:text-foreground"
