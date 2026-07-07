@@ -169,10 +169,38 @@
   .section-label {
     @apply text-[0.65rem] font-medium uppercase tracking-[0.3em] text-muted-foreground;
   }
+
+  /* Hero entrance — hide animated targets until GSAP takes over (prevents FOUC) */
+  [data-hero-animate] [data-hero-label],
+  [data-hero-animate] [data-hero-line],
+  [data-hero-animate] [data-hero-desc],
+  [data-hero-animate] [data-hero-cta],
+  [data-hero-animate] [data-hero-image] {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  [data-hero-animate] [data-hero-accent] {
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  [data-hero-animate] [data-hero-label],
+  [data-hero-animate] [data-hero-line],
+  [data-hero-animate] [data-hero-desc],
+  [data-hero-animate] [data-hero-cta],
+  [data-hero-animate] [data-hero-image] {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  [data-hero-animate] [data-hero-accent] {
+    transform: none;
   }
 }
